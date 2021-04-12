@@ -12,7 +12,8 @@
         />
       </q-toolbar>
         <div>
-          <div class="q-px-lg q-pt-xl q-mb-md">        <div class="text-h3">Todo</div>
+          <div class="q-px-lg q-pt-xl q-mb-md">
+          <div class="text-h3">Todo</div>
           <div class="text-subtite">{{ todaysDate }}</div>
         </div>
       </div>
