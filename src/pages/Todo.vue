@@ -26,8 +26,8 @@
       bordered>
       <q-item
         v-for="(task, index) in tasks"
-        :key="task.title"
-        @click="task.done = !task.done"
+        :key="task.info"
+        @click.stop="toggleTask(index)"
         clickable
         :class="{ 'done bg-blue-1' : task.done }"
         v-ripple>
@@ -38,13 +38,13 @@
             color="primary" />
         </q-item-section>
         <q-item-section>
-          <q-item-label>{{ task.title }}</q-item-label>
+          <q-item-label>{{ task.info }}</q-item-label>
         </q-item-section>
         <q-item-section
           v-if="task.done"
           side>
           <q-btn
-            @click.stop="deleteTask(index)"
+            @click.stop="removeTask(index)"
             flat
             round
             dense
@@ -68,44 +68,43 @@
 </template>
 
 <script>
+import api from '../api'
+
 export default {
   data() {
     return {
       newTask: '',
-      tasks: [
-        // {
-        //   title: 'Eat',
-        //   done: true
-        // },
-        // {
-        //   title: 'Sleep',
-        //   done: false
-        // },
-        // {
-        //   title: 'Rave',
-        //   done: false
-        // },
-      ]
+      tasks: []
     }
   },
+  async created() {
+    this.refreshTasks()
+  },
   methods: {
-    deleteTask(index) {
+    async refreshTasks() {
+      this.tasks = await api.readTasks()
+    },
+    async addTask() {
+      await api.createTask({info: this.newTask, done: false})
+      await this.refreshTasks()
+      this.newTask = ''
+    },
+    async toggleTask(index) {
+      const task = this.tasks[index]
+      await api.updateTask(task.id, {info: task.info, done: !task.done})
+      await this.refreshTasks()
+    },
+    removeTask(index) {
       this.$q.dialog({
         title: 'Confirm',
-        message: 'Really delete?',
+        message: 'Really remove?',
         cancel: true,
         persistent: true
-      }).onOk(() => {
-        this.tasks.splice(index, 1)
-        this.$q.notify('Task deleted')
+      }).onOk(async () => {
+        await api.deleteTask(this.tasks[index].id)
+        await this.refreshTasks()
+        this.$q.notify('Task removed')
       })
-    },
-    addTask() {
-      this.tasks.push({
-        title: this.newTask,
-        done: false
-      })
-      this.newTask = ''
     }
   }
 }
